@@ -1,41 +1,39 @@
 # FreshCart AI Support – RAG Knowledge Base
 
-## Project Overview
+## 1. Project Overview
 
 This project builds a Retrieval-Augmented Generation (RAG) knowledge base for FreshCart Grocers' customer support system.
 
 It uses Sentence Transformers to convert customer support tickets into numerical embeddings and FAISS to retrieve semantically similar tickets.
 
-The retrieved tickets and their suggested replies can later provide context to an AI model for drafting customer support responses.
+The retrieved tickets and their suggested replies can later provide relevant context to an AI model for drafting customer support responses.
 
-## Features
+## 2. Features
 
-- Sample customer support dataset containing 20 tickets.
-- Data cleaning using Pandas.
+- Sample dataset containing 20 customer support tickets.
+- Data cleaning and preprocessing.
 - Text embeddings using Sentence Transformers.
-- Vector indexing and similarity search using FAISS.
-- Metadata storage using JSON.
-- Retrieval of relevant tickets and their suggested replies.
+- FAISS vector index creation and storage.
+- Metadata storage in JSON format.
+- Semantic similarity search for relevant support tickets.
 
-## Technologies Used
+## 3. Technologies Used
 
-- Python
+- Python 3.12
 - Pandas
 - NumPy
 - Sentence Transformers
-- FAISS
-- JSON
+- FAISS (faiss-cpu)
 - Jupyter Notebook
 
-## Project Structure
+## 4. Project Structure
 
 ```text
 freshcart-rag-knowledge-base/
 │
 ├── data/
 │   ├── raw/
-│   │   ├── support_tickets.csv
-│   │   └── code.ipynb
+│   │   └── support_tickets.csv
 │   └── processed/
 │       └── cleaned_support_tickets.csv
 │
@@ -46,80 +44,138 @@ freshcart-rag-knowledge-base/
 ├── src/
 │   ├── generate_data.py
 │   ├── data_cleaning.py
-│   └── test_embedding.py
+│   ├── test_embedding.py
+│   └── build_faiss_index.py
 │
 ├── vector_store/
 │   ├── faiss.index
 │   └── metadata.json
 │
-├── docs/
 ├── logs/
-├── tests/
+├── .gitignore
 └── README.md
 ```
 
-## Installation
+## 5. Dataset
 
-Install the required libraries:
+The project uses a synthetic sample dataset of 20 customer support tickets.
+
+Each ticket contains:
+
+- `id`: Unique ticket identifier
+- `subject`: Ticket subject
+- `body`: Customer's message
+- `correct_reply`: Suggested support response
+- `category`: Ticket category
+
+The dataset covers these categories:
+
+- Organic Produce Quality
+- Delivery Delays
+- Refunds and Returns
+- Missing or Damaged Items
+- Order Cancellation
+- Payment Issues
+- General Store Policies
+
+**Note:** The dataset and suggested replies are illustrative sample data, not official FreshCart policies or verified customer records.
+
+## 6. Installation and Setup
+
+### Step 1: Clone the repository
+
+```bash
+git clone https://github.com/sheherbano313/Ezitech-AI-Internship.git
+cd Ezitech-AI-Internship
+```
+
+### Step 2: Create a virtual environment
+
+```bash
+python -m venv .venv
+```
+
+Activate it:
+
+**Windows (Git Bash):**
+
+```bash
+source .venv/Scripts/activate
+```
+
+**Windows (Command Prompt):**
+
+```bash
+.venv\Scripts\activate
+```
+
+### Step 3: Install dependencies
 
 ```bash
 pip install pandas numpy sentence-transformers faiss-cpu jupyter
 ```
 
-## How to Run
+## 7. How to Run
 
-1. Clone or download this repository.
-2. Open the project folder in VS Code.
-3. Install the required libraries.
-4. Launch Jupyter Notebook:
+Run the following command from the project root directory:
 
 ```bash
-jupyter notebook
+python src/build_faiss_index.py
 ```
 
-5. Open `Notebook/embedding_generation.ipynb`.
-6. Run the notebook cells in order to generate embeddings, build the FAISS index, save metadata, and test retrieval.
+The script will:
 
-## How It Works
+1. Load the cleaned support ticket CSV file.
+2. Validate the required dataset columns.
+3. Clean missing text values.
+4. Combine ticket subjects and message bodies.
+5. Generate embeddings using `all-MiniLM-L6-v2`.
+6. Create a FAISS index.
+7. Save the index and ticket metadata locally.
 
-1. Prepare and clean the customer support dataset.
-2. Load the cleaned dataset into a Pandas DataFrame.
-3. Combine ticket subjects and customer messages.
-4. Generate embeddings using `all-MiniLM-L6-v2`.
-5. Convert embeddings into NumPy float32 format.
-6. Build a FAISS index using L2 distance.
-7. Save the FAISS index and ticket metadata.
-8. Convert a new customer query into an embedding.
-9. Retrieve the three most similar support tickets.
+### Expected Output
 
-## Retrieval Example
+```text
+FAISS index created successfully!
+Total tickets: 20
+Embedding dimensions: 384
+Index saved at: vector_store/faiss.index
+Metadata saved at: vector_store/metadata.json
+```
 
-Example customer query:
+The first execution may download the Sentence Transformer model if it is not already cached.
 
-"My strawberries arrived rotten and damaged."
+## 8. Vector Store
 
-The system retrieves relevant tickets, including:
+The generated vector store contains:
 
-- Mold on strawberries
-- Damaged organic apples
-- Wilted spinach
+- `faiss.index`: FAISS index containing the ticket embeddings.
+- `metadata.json`: Corresponding ticket information, including IDs, subjects, bodies, categories, and suggested replies.
 
-The retrieved tickets provide relevant information and suggested replies for future AI response generation.
+The embeddings have 384 dimensions.
 
-## Dataset Note
+## 9. Similarity Search
 
-The dataset contains 20 synthetic sample customer support tickets created for project development and testing.
+The FAISS index can retrieve support tickets that are semantically similar to a customer query.
 
-The sample replies are illustrative examples and are not official or approved FreshCart Grocers policies.
+For example:
 
-## Current Status
+**Query:** My strawberries arrived rotten and damaged.
 
-Core RAG knowledge base and similarity retrieval have been implemented and tested using Jupyter Notebook.
+The system retrieves relevant organic produce quality tickets based on embedding similarity.
 
-The next stage is integrating the retrieval system with an AI response drafting workflow using n8n.
+Lower L2 distance indicates greater similarity.
 
-## Author
+## 10. Limitations
 
-Sheher Bano
+- The dataset contains synthetic sample tickets.
+- Suggested replies are illustrative and should not be treated as official company policies.
+- This task implements the retrieval knowledge base, not the complete automated response-generation workflow.
 
-Project: FreshCart AI Support Drafting Pipeline
+## 11. Author
+
+**Sheher Bano**
+
+AI Intern – Ezitech
+
+GitHub: https://github.com/sheherbano313
