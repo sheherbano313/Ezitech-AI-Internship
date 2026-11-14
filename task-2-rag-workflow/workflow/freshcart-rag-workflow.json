@@ -1,0 +1,164 @@
+{
+  "name": "FreshCart RAG Workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "freshcart-support",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.2,
+      "position": [
+        -416,
+        -32
+      ],
+      "id": "88ccd941-aea3-4389-b7ea-1150d83ce977",
+      "name": "Webhook",
+      "webhookId": "784f29f4-a0b1-460e-acec-bd938a0e29a3"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:8000/retrieve",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "ticket_body",
+              "value": "={{ $json.body.ticket_body }}"
+            },
+            {
+              "name": "top_k",
+              "value": "3"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        -224,
+        -32
+      ],
+      "id": "2f81626e-ca8d-461e-b5ac-e8aca641b8ea",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{\n`You are a professional customer support assistant for FreshCart Grocers.\n\nCUSTOMER COMPLAINT:\n${$('Webhook').first().json.body.ticket_body}\n\nRETRIEVED SUPPORT TICKETS:\n${JSON.stringify($json.results, null, 2)}\n\nWrite a polite, empathetic and concise reply addressing the customer's complaint.\n\nUse retrieved tickets only as guidance. Do not invent refunds, replacements, policies or promises. Ask for missing information when needed.\n\nReturn only the customer-facing draft reply.`\n}}",
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        0,
+        -80
+      ],
+      "id": "c648302d-5238-4174-b4f7-6ce4069cc3bc",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "model": "qwen2.5:1.5b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmOllama",
+      "typeVersion": 1,
+      "position": [
+        -32,
+        96
+      ],
+      "id": "dcc8e099-b2d0-4832-a3d2-5bc9805a26f9",
+      "name": "Ollama Model",
+      "credentials": {
+        "ollamaApi": {
+          "id": "dZh5irerY01KtYqS",
+          "name": "Ollama account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{\n{\n  success: true,\n  customer_message: $('Webhook').first().json.body.ticket_body,\n  retrieved_tickets: $('HTTP Request').first().json.results,\n  draft_reply: $json.text\n}\n}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        368,
+        -48
+      ],
+      "id": "360da47b-5942-44b6-81d2-3489f2b28db3",
+      "name": "Respond to Webhook1"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ollama Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "timeSavedMode": "fixed",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false,
+    "errorWorkflow": "8UbG38cMDMgAiwMN"
+  },
+  "versionId": "be54936c-66c0-4552-81ae-db4e1a5469c0",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "e3e896e531a82d7a6b0c4425976fc4ad95c939101bf83d8a8a622d8958679596"
+  },
+  "nodeGroups": [],
+  "id": "UF0Jdg9QFJBWMOvm",
+  "tags": []
+}
