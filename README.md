@@ -207,4 +207,6 @@ Detailed test inputs, outputs, results, and observations are documented in the e
 ## Project Status
 
 This project demonstrates a local RAG-based customer support drafting workflow using FastAPI, FAISS, n8n, and Ollama. It is intended as an informational prototype and requires further testing and improvements before real-world deployment.
+## Screen Recording
 
+[Watch the FreshCart RAG Workflow demonstration](https://github.com/sheherbano313/Ezitech-AI-Internship/blob/task-2-rag-json-integration/video.mp4)
