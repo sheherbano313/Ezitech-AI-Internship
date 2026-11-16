@@ -212,19 +212,13 @@ Detailed test inputs, outputs, results, and observations are documented in the e
 
 ## Limitations
 
-- The knowledge base contains a limited sample of 20 historical support tickets.
-- Retrieval uses FAISS similarity search and returns up to three tickets by default.
-- Retrieval may return partially relevant or irrelevant tickets.
-- The local Qwen2.5 1.5B model may generate incorrect assumptions or imperfect responses.
-- The system does not connect to live order, inventory, delivery, or payment systems.
-- It cannot actually issue refunds, replace products, cancel orders, or verify transactions.
-- Generated replies require human review before being sent to customers.
-- Customer-name placeholders may require manual editing.
-- Empty or invalid input can cause workflow errors; graceful customer-facing validation should be improved.
-- Out-of-scope questions are not yet reliably detected.
-- The current implementation is a local prototype, not a production-ready customer support deployment.
-- Authentication, production-grade privacy controls, and comprehensive monitoring are not implemented.
-- Error logs are stored locally.
+- The knowledge base contains only 20 historical support tickets, so retrieval may fail on food-safety and out-of-scope queries.
+
+- The local Qwen2.5 1.5B model may make incorrect assumptions or over-commit in customer responses.
+
+- The workflow does not include a clarification loop when the retrieved information is insufficient or the customer's issue is unclear.
+
+- The system does not connect to live order, inventory, delivery, or payment systems; generated drafts require human review.
 
 ## Future Improvements
 
