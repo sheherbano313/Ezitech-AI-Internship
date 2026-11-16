@@ -210,7 +210,6 @@ Ten functional test cases were performed:
 
 Detailed test inputs, outputs, results, and observations are documented in the evaluation report.
 
-## Limitations
 
 
 ## Limitations
