@@ -48,72 +48,106 @@ Install or configure the following before running the project:
 - n8n (version 2.x)
 - Ollama
 - Qwen2.5 1.5B model
-- The project files and knowledge-base virtual environment
+- The cloned project repository and its included vector store files
+
 
 ## Setup and Deployment
 
-### 1. Start the FastAPI service
+### 1. Clone the repository
 
-Open PowerShell and run:
+Clone the project and open its root directory:
 
 ```powershell
-cd D:\Ezitech\freshcart-rag-workflow
+git clone https://github.com/sheherbano313/Ezitech-AI-Internship.git
+cd Ezitech-AI-Internship
+```
 
-& "D:\Ezitech\freshcart-rag-knowledge-base\.venv\Scripts\python.exe" -m uvicorn app:app --app-dir .\src --host 0.0.0.0 --port 8000
+Run the remaining commands from this repository root directory.
+
+### 2. Create the Python environment
+
+Python 3.12 is recommended.
+
+```powershell
+py -3.12 -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip
+python -m pip install fastapi "uvicorn[standard]" pydantic faiss-cpu sentence-transformers
+```
+
+The virtual environment is created inside the cloned repository. No external virtual environment or personal computer path is required.
+
+### 3. Start the FastAPI service
+
+From the repository root, run:
+
+```powershell
+python -m uvicorn app:app --app-dir src --host 0.0.0.0 --port 8000
 ```
 
 Keep this terminal running while using the workflow.
 
-### 2. Start Ollama
+Check the API health endpoint:
 
-Ensure Ollama is running on the Windows host.
+`http://localhost:8000/health`
 
-Check that the model is available:
+The first startup may download the `all-MiniLM-L6-v2` embedding model. An internet connection is required for the initial download.
+
+### 4. Start Ollama
+
+Install and start Ollama on the machine that runs the workflow services.
+
+Check whether the required model is available:
 
 ```powershell
 ollama list
 ```
 
-If the model is not installed, download it:
+If it is not installed, run:
 
 ```powershell
 ollama pull qwen2.5:1.5b
 ```
 
-### 3. Start n8n
+Keep Ollama running while using the workflow.
+
+### 5. Start and connect n8n
 
 Start Docker Desktop and ensure the n8n container is running.
 
-Open n8n in your browser:
+Open n8n:
 
 `http://localhost:5678`
 
-The workflow uses these host addresses from inside Docker:
+**Important network requirement:** The FastAPI service and Ollama must run on the same machine as n8n, or they must be reachable by n8n through a valid hostname or network address. The services must not be isolated from the n8n container.
+
+When n8n runs inside Docker on the same Windows machine as FastAPI and Ollama, use:
 
 - FastAPI: `http://host.docker.internal:8000`
 - Ollama: `http://host.docker.internal:11434`
 
-The `host.docker.internal` hostname allows the n8n container to communicate with services running on the Windows host.
+When n8n runs directly on the same machine outside Docker, use:
 
-### 4. Configure the n8n workflow
+- FastAPI: `http://localhost:8000`
+- Ollama: `http://localhost:11434`
+
+If n8n, FastAPI, or Ollama run on separate machines, replace these addresses with the appropriate reachable hostnames or IP addresses. Configure the services and firewall to permit access only from trusted networks. Do not expose Ollama or the API publicly without appropriate security controls.
+
+### 6. Import and configure the workflow
 
 The exported workflow files are located in:
 
 `workflow/`
 
-Import the required JSON exports into n8n when setting up a fresh instance.
+Import the required JSON workflow into n8n.
 
-Configure the Ollama model connection to use:
+Configure the Ollama connection with the reachable Ollama address and confirm that the HTTP Request node uses the reachable FastAPI address followed by:
 
-`http://host.docker.internal:11434`
-
-Check the HTTP Request node and confirm that its retrieval URL is:
-
-`http://host.docker.internal:8000/retrieve`
+`/retrieve`
 
 The main workflow is named **FreshCart RAG Workflow**.
 
-### 5. Test the workflow
+### 7. Test the workflow
 
 For test mode:
 
@@ -130,23 +164,14 @@ Example PowerShell request:
 Invoke-RestMethod -Method POST -Uri "http://localhost:5678/webhook-test/freshcart-support" -ContentType "application/json" -Body '{"ticket_body":"My grocery delivery is late. Please help.","top_k":3}' | ConvertTo-Json -Depth 10
 ```
 
-In test mode, the webhook accepts one request after each activation. Click Execute Workflow again before another test.
+In test mode, activate the workflow again before sending another test request.
 
-For production-mode webhook requests, use:
+For production-mode requests, use:
 
 `http://localhost:5678/webhook/freshcart-support`
 
 The workflow must be published or active for production-mode requests.
 
-## API Endpoints
-
-The FastAPI service provides:
-
-- `GET /health` - Health check.
-- `POST /retrieve` - Retrieves relevant historical support tickets.
-- `POST /log-error` - Records workflow errors.
-
-The retrieval endpoint accepts a customer message and a `top_k` value to control the number of retrieved results.
 
 ## Error Handling
 
@@ -158,6 +183,16 @@ Errors are recorded locally in:
 
 This provides a basic record of workflow failures for troubleshooting.
 
+## API Endpoints
+
+The FastAPI service provides:
+
+- `GET /health` - Health check.
+- `POST /retrieve` - Retrieves relevant historical support tickets.
+- `POST /log-error` - Records workflow errors.
+
+The retrieval endpoint accepts a customer message and a `top_k` value to control the number of retrieved results.
+
 ## Evaluation
 
 Ten functional test cases were performed:
@@ -165,15 +200,13 @@ Ten functional test cases were performed:
 1. Damaged strawberries - PASS
 2. Late delivery - PASS
 3. Refund for cancelled order - PASS
-4. Spoiled milk / food safety - PASS with improvements needed
+4. Spoiled milk / food safety - FAIL
 5. Angry customer complaint - FAIL
 6. Vague customer query - FAIL
-7. Wrong items delivered - PASS with improvements needed
+7. Wrong items delivered - FAIL
 8. Duplicate payment - FAIL
 9. Out-of-scope question - FAIL
-10. Empty customer message - PASS with improvements needed
-
-The tests identified areas for improvement, including retrieval relevance, unsupported assumptions, refund promises, out-of-scope detection, and graceful error handling.
+10. The tests identified areas for improvement, including retrieval relevance, unsupported assumptions, refund promises, out-of-scope detection, and graceful error handling.
 
 Detailed test inputs, outputs, results, and observations are documented in the evaluation report.
 
@@ -209,4 +242,4 @@ Detailed test inputs, outputs, results, and observations are documented in the e
 This project demonstrates a local RAG-based customer support drafting workflow using FastAPI, FAISS, n8n, and Ollama. It is intended as an informational prototype and requires further testing and improvements before real-world deployment.
 ## Screen Recording
 
-[Watch the FreshCart RAG Workflow demonstration](https://github.com/sheherbano313/Ezitech-AI-Internship/blob/task-2-rag-json-integration/video.mp4)
+[Watch the FreshCart RAG Workflow demonstration]https://github.com/sheherbano313/Ezitech-AI-Internship/blob/master/video.mp4
