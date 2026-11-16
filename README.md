@@ -212,13 +212,15 @@ Detailed test inputs, outputs, results, and observations are documented in the e
 
 ## Limitations
 
-- The knowledge base contains only 20 historical support tickets, so retrieval may fail on food-safety and out-of-scope queries.
 
-- The local Qwen2.5 1.5B model may make incorrect assumptions or over-commit in customer responses.
+## Limitations
 
-- The workflow does not include a clarification loop when the retrieved information is insufficient or the customer's issue is unclear.
+ **Retrieval gaps:** The knowledge base contains only 20 historical support tickets and does not adequately cover food-safety issues. As a result, relevant food-safety tickets may not be retrieved, leading to incomplete or unreliable responses.
 
-- The system does not connect to live order, inventory, delivery, or payment systems; generated drafts require human review.
+ **No out-of-scope detection:** The workflow does not check whether a customer's question is related to FreshCart services. Unrelated questions may be passed to the AI with irrelevant support tickets, causing incorrect responses.
+
+ **Model over-commitment:** The local Qwen2.5 1.5B model may make assumptions or promise a resolution when the customer's input is unclear or insufficient. The workflow has no clarification loop to ask for missing details before generating a reply.
+
 
 ## Future Improvements
 
